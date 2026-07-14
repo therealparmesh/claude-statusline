@@ -4,10 +4,12 @@ A simple, elegant status line for [Claude Code](https://docs.claude.com/en/docs/
 
 ![example](example.png)
 
-- **Line 1**: folder, git branch, model
-- **Line 2**: context gauge (green → yellow → red as it fills), session cost, token count
+- **Line 1** — folder, git branch, model, and cloud profile (AWS, Google Cloud)
+- **Line 2** — context gauge (green → yellow → red as it fills), session cost, token count
 
-Colors use the basic-16 ANSI palette so they remap to your terminal theme.
+The cloud profile only shows when Claude Code is routed through a provider: your `AWS_PROFILE` on Bedrock, or your project ID on Vertex. On the Claude API or a subscription it's omitted.
+
+Colors use the basic-16 ANSI palette, so they remap to your terminal theme.
 
 ## Install
 
@@ -17,9 +19,7 @@ cd claude-statusline
 ./install.sh
 ```
 
-The installer copies `statusline.js` to `~/.claude/` and merges the `statusLine`
-entry into your `settings.json`, leaving your other settings untouched.
-Restart Claude Code to see it.
+The installer copies `statusline.js` to `~/.claude/` and merges the `statusLine` entry into your `settings.json`, leaving your other settings untouched. Restart Claude Code to see it.
 
 ## Requirements
 

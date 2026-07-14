@@ -3,7 +3,7 @@
 # settings.json at it (merging, so existing settings are preserved).
 set -euo pipefail
 
-SRC="$(dirname "$0")/statusline.js"
+SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/statusline.js"
 DEST_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
 DEST="$DEST_DIR/statusline.js"
 
@@ -13,7 +13,7 @@ command -v bun >/dev/null || {
 }
 
 mkdir -p "$DEST_DIR"
-cp -f "$SRC" "$DEST"
+[ "$SRC" -ef "$DEST" ] || cp "$SRC" "$DEST"
 chmod +x "$DEST"
 
 # Merge statusLine into settings.json via bun (preserves everything else).

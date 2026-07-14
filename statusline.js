@@ -19,14 +19,24 @@ const g = {
   folder: "\u{f07b}",
   branch: "\u{e0a0}",
   model: "\u{f085}",
+  aws: "\u{f270}",
+  gcloud: "\u{f1a0}",
   context: "\u{f0e4}",
   cost: "\u{f0d6}",
   tokens: "\u{f292}",
 };
 
 const seg = (text) => `${c.gray}[${c.reset}${text}${c.gray}]${c.reset}`;
-const trunc = (s, n = 22) => (s.length > n ? s.slice(0, n - 1) + "…" : s);
+const trunc = (s, n = 24) => (s.length > n ? s.slice(0, n - 1) + "…" : s);
 const fmtTok = (n) => (n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n));
+const cloud = (env) => {
+  const who = env.CLAUDE_CODE_USE_BEDROCK
+    ? { glyph: g.aws, name: env.AWS_PROFILE || env.AWS_DEFAULT_PROFILE }
+    : env.CLAUDE_CODE_USE_VERTEX
+      ? { glyph: g.gcloud, name: env.ANTHROPIC_VERTEX_PROJECT_ID || env.CLOUDSDK_CORE_PROJECT }
+      : null;
+  return who?.name ? who : null;
+};
 
 try {
   const raw = await Bun.stdin.text();
@@ -36,14 +46,16 @@ try {
   const cwd = data.workspace?.current_dir || data.cwd;
   if (!cwd) process.exit(0);
 
-  // Line 1: folder, git branch, model
+  // Line 1: folder, git branch, model, cloud identity
   const folder = cwd.split("/").filter(Boolean).pop() || cwd;
   const folderSeg = seg(`${c.cyan}${g.folder} ${trunc(folder)}${c.reset}`);
   const branch = (await $`git -C ${cwd} branch --show-current`.quiet().nothrow().text()).trim();
   const gitSeg = branch ? seg(`${c.magenta}${g.branch} ${trunc(branch)}${c.reset}`) : "";
   const model = data.model?.display_name;
   const modelSeg = model ? seg(`${c.white}${g.model} ${trunc(model)}${c.reset}`) : "";
-  const line1 = [folderSeg, gitSeg, modelSeg].filter(Boolean).join(" ");
+  const who = cloud(process.env);
+  const cloudSeg = who ? seg(`${c.gray}${who.glyph} ${who.name}${c.reset}`) : "";
+  const line1 = [folderSeg, gitSeg, modelSeg, cloudSeg].filter(Boolean).join(" ");
 
   // Line 2: context gauge, cost, tokens
   const rawRem = data.context_window?.remaining_percentage;
