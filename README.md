@@ -4,8 +4,8 @@ A simple, elegant status line for [Claude Code](https://docs.claude.com/en/docs/
 
 ![example](example.png)
 
-- **Line 1** — folder, git branch, model, and cloud profile (AWS, Google Cloud)
-- **Line 2** — context gauge (green → yellow → red as it fills), session cost, token count
+- **Line 1** — folder, git branch, model, reasoning effort, and cloud profile (AWS, Google Cloud)
+- **Line 2** — context gauge (green → yellow → red as it fills), session cost, token count, and output burn rate
 
 The cloud profile only shows when Claude Code is routed through a provider: your `AWS_PROFILE` on Bedrock, or your project ID on Vertex. On the Claude API or a subscription it's omitted.
 
