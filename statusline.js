@@ -80,8 +80,7 @@ try {
     );
   }
   const cost = data.cost?.total_cost_usd;
-  const costSeg =
-    typeof cost === "number" ? seg(`${c.blue}${g.cost} $${cost.toFixed(2)}${c.reset}`) : "";
+  const costSeg = cost > 0 ? seg(`${c.blue}${g.cost} $${cost.toFixed(2)}${c.reset}`) : "";
   const tok =
     (data.context_window?.total_input_tokens || 0) +
     (data.context_window?.total_output_tokens || 0);
