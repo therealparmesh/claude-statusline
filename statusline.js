@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 import { $ } from "bun";
 
-// ANSI basic-16 colors so the terminal theme can remap them
+// ANSI basic-16 colors. The terminal theme can change them.
 const c = {
   cyan: "\x1b[36m",
   magenta: "\x1b[95m",
@@ -13,7 +13,7 @@ const c = {
   reset: "\x1b[0m",
 };
 
-// Nerd Font glyphs
+// Nerd Font glyphs.
 const g = {
   folder: "\u{f07b}",
   branch: "\u{e0a0}",
@@ -26,7 +26,7 @@ const g = {
   sep: "\u{f444}",
 };
 
-// Active cloud backend as a glyph + account name, or null if neither is set
+// Give the active cloud backend as a glyph and an account name. Give null if there is no backend.
 const cloud = (env) => {
   const who = env.CLAUDE_CODE_USE_BEDROCK
     ? { glyph: g.aws, name: env.AWS_PROFILE || env.AWS_DEFAULT_PROFILE }
@@ -36,15 +36,28 @@ const cloud = (env) => {
   return who?.name ? who : null;
 };
 
-// Abbreviate token counts over 1k to one decimal
+// Make a short token count. Use "k" above 1 thousand and "M" above 1 million, with one decimal.
 const fmtTok = (n) =>
   n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n);
 
-// Wrap content in gray brackets to form one status segment
+// Put the text in gray brackets to make one status segment.
 const seg = (text) => `${c.gray}[${c.reset}${text}${c.gray}]${c.reset}`;
 
-// Clip to n chars, appending an ellipsis when it overflows
+// Cut the text to n characters. If the text is too long, add an ellipsis.
 const trunc = (s, n = 24) => (s.length > n ? s.slice(0, n - 1) + "…" : s);
+
+// Give the visible width. Do not count the ANSI color codes. ponytail: each glyph is 1 cell.
+const width = (s) => [...s.replace(/\x1b\[[0-9;]*m/g, "")].length;
+
+// Claude Code sets COLUMNS (v2.1.153+). If COLUMNS is empty, assume a wide terminal and do not wrap.
+const cols = Number(process.env.COLUMNS) || Infinity;
+
+// This function tests if the base and the tail are too wide for the terminal together.
+const overflows = (base, tail) => Boolean(base && tail) && width(`${base} ${tail}`) > cols;
+
+// Attach the tail to the base. If wrap is true, put the tail on a new line.
+const attach = (base, tail, wrap) =>
+  !tail ? base : !base ? tail : wrap ? `${base}\n${tail}` : `${base} ${tail}`;
 
 try {
   const raw = await Bun.stdin.text();
@@ -61,10 +74,10 @@ try {
   const gitSeg = branch ? seg(`${c.magenta}${g.branch} ${trunc(branch)}${c.reset}`) : "";
   const model = data.model?.display_name;
   const effort = data.effort?.level ? `${g.sep} ${data.effort.level}` : "";
-  const modelSeg = model ? seg(`${c.blue}${g.model} ${trunc(model)}${effort}${c.reset}`) : "";
+  const modelSeg = model ? seg(`${c.blue}${g.model} ${model}${effort}${c.reset}`) : "";
   const who = cloud(process.env);
   const cloudSeg = who ? seg(`${c.gray}${who.glyph} ${who.name}${c.reset}`) : "";
-  const line1 = [folderSeg, gitSeg, modelSeg, cloudSeg].filter(Boolean).join(" ");
+  const base1 = [folderSeg, gitSeg, modelSeg].filter(Boolean).join(" ");
 
   // Line 2: context gauge, cost, tokens, burn rate
   const rawRem = data.context_window?.remaining_percentage;
@@ -88,7 +101,12 @@ try {
   const rate = apiMs > 0 ? (data.context_window?.total_output_tokens || 0) / (apiMs / 1000) : 0;
   const rateStr = apiMs > 0 ? `${g.sep} ${rate.toFixed(1)} tok/s` : "";
   const tokSeg = tok > 0 ? seg(`${c.gray}${g.tokens} ${fmtTok(tok)} tok${rateStr}${c.reset}`) : "";
-  const line2 = [ctxSeg, costSeg, tokSeg].filter(Boolean).join(" ");
+  const base2 = [ctxSeg, costSeg].filter(Boolean).join(" ");
+
+  // Wrap both tails or neither, so the two lines match.
+  const wrap = overflows(base1, cloudSeg) || overflows(base2, tokSeg);
+  const line1 = attach(base1, cloudSeg, wrap);
+  const line2 = attach(base2, tokSeg, wrap);
 
   process.stdout.write([line1, line2].filter(Boolean).join("\n"));
 } catch {
