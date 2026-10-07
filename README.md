@@ -1,19 +1,20 @@
 # claude-statusline
 
-A simple, elegant status line for [Claude Code](https://docs.claude.com/en/docs/claude-code).
+A two-line status line for [Claude Code](https://docs.claude.com/en/docs/claude-code).
 
 ![example](example.png)
 
-- **Line 1** — folder, git branch, model, reasoning effort, and cloud profile (AWS, Google Cloud)
-- **Line 2** — context gauge (green, then yellow, then red as it fills), session cost, token count, and output burn rate
+The top line is where you are: the folder, the git branch, the model and its reasoning effort, and your cloud profile.
 
-The status line shows the cloud profile only when Claude Code uses a provider. The profile is your `AWS_PROFILE` on Bedrock, or your project ID on Vertex. The Claude API and a subscription do not show a profile.
+The bottom line is what the session has used: how much context is left, how many tokens are in it, and the cost so far. The context gauge turns yellow at 40% left and red at 20%.
 
-If the terminal is too narrow, the cloud profile and the token segment both move to a new line together.
+You see a cloud profile only on Bedrock (your `AWS_PROFILE`) or Vertex (your project ID).
 
-The colors use the basic-16 ANSI palette. The terminal theme sets the exact color.
+When the terminal is narrow, the parts that do not fit move down a line. The colors come from your terminal theme.
 
 ## Install
+
+You need [Bun](https://bun.sh), and a [Nerd Font](https://nerdfonts.com) for the icons.
 
 ```sh
 git clone https://github.com/therealparmesh/claude-statusline
@@ -21,12 +22,7 @@ cd claude-statusline
 ./install.sh
 ```
 
-The installer copies `statusline.js` to `~/.claude/`. It adds the `statusLine` entry to your `settings.json` and keeps your other settings. Restart Claude Code to see the status line.
-
-## Requirements
-
-- [Bun](https://bun.sh)
-- A [Nerd Font](https://nerdfonts.com) for the glyphs
+The installer copies `statusline.js` into `~/.claude/` (or `$CLAUDE_CONFIG_DIR`) and points `statusLine` in `settings.json` at it. It does not touch your other settings. Restart Claude Code to see the status line.
 
 ## License
 
