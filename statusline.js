@@ -1,29 +1,32 @@
 #!/usr/bin/env bun
 import { $ } from "bun";
 
-// ANSI basic-16 colors. The terminal theme sets the exact color.
-// Use dim, not "bright black", for gray text: some themes (Solarized Dark) make bright black the background color.
+// ANSI basic-16 foreground colors only. The terminal theme sets the exact color, so these read on dark and light themes.
+// Normal colors (30-37) are the theme's accent colors. Two exceptions:
+// - blue is bright (94): normal blue is a dark navy in macOS Terminal, xterm and Windows, and vanishes on a black background.
+// - the empty gauge track is bright black (90): the only muted color in the set. In Solarized Dark it is the background color,
+//   so the track disappears there, but the filled part and the percent still show.
+// The cloud profile and the cost have no color. They are plain facts, and the default foreground reads on every theme.
 const c = {
   cyan: "\x1b[36m",
   magenta: "\x1b[35m",
-  blue: "\x1b[34m",
+  blue: "\x1b[94m",
   red: "\x1b[31m",
   yellow: "\x1b[33m",
   green: "\x1b[32m",
-  dim: "\x1b[2m",
-  undim: "\x1b[22m",
+  gray: "\x1b[90m",
   reset: "\x1b[0m",
 };
 
-// Nerd Font glyphs.
+// Nerd Font glyphs, all from the Material Design Icons set (nf-md-*), so they have one style and weight.
 const g = {
-  folder: "\u{f07b}",
-  branch: "\u{e0a0}",
-  model: "\u{f085}",
-  aws: "\u{f270}",
-  gcloud: "\u{f1a0}",
-  context: "\u{f0e4}",
-  cost: "\u{f0d6}",
+  folder: "\u{f024b}",
+  branch: "\u{f062c}",
+  model: "\u{f061a}",
+  aws: "\u{f0e0f}",
+  gcloud: "\u{f11f6}",
+  context: "\u{f029a}",
+  cost: "\u{f0114}",
 };
 
 // Give the active cloud backend as a glyph and a profile name (AWS profile or Google Cloud project).
@@ -49,16 +52,20 @@ const seg = (color, glyph, text) => `${color}${glyph}  ${text}${c.reset}`;
 // Join parts of a segment with a dot.
 const dot = (...parts) => parts.filter(Boolean).join(" · ");
 
-// Cut the text to n characters. If the text is too long, keep the start and add an ellipsis.
-const trunc = (s, n = 24) => {
-  const chars = [...s];
-  return chars.length > n ? chars.slice(0, n - 1).join("") + "…" : s;
+// Cut text that is longer than 24 characters, and put an ellipsis where the cut is.
+// Cut at a separator (/ : - _ .) when one is in the second half of the kept part, so that no word is cut in half.
+// Keep the start by default: a folder name and a branch's ticket prefix start the text.
+// Keep the end for a cloud profile: an SSO profile ends in its env:role.
+const MAX = 24;
+const cut = (chars) => {
+  const head = chars.slice(0, MAX - 1);
+  const at = head.findLastIndex((ch, i) => i >= MAX / 2 && /[/:_.-]/.test(ch));
+  return at > 0 ? head.slice(0, at) : head;
 };
-
-// Cut the text to n characters. If the text is too long, keep the end and add an ellipsis.
-const truncStart = (s, n) => {
+const trunc = (s, keepEnd = false) => {
   const chars = [...s];
-  return chars.length > n ? "…" + chars.slice(1 - n).join("") : s;
+  if (chars.length <= MAX) return s;
+  return keepEnd ? "…" + cut(chars.reverse()).reverse().join("") : cut(chars).join("") + "…";
 };
 
 // Give the visible width. Do not count the ANSI color codes.
@@ -94,7 +101,7 @@ try {
   const model = data.model?.display_name;
   const modelSeg = model ? seg(c.blue, g.model, dot(model, data.effort?.level)) : "";
   const who = cloud(process.env);
-  const cloudSeg = who ? seg(c.dim, who.glyph, truncStart(who.name, 32)) : "";
+  const cloudSeg = who ? seg("", who.glyph, trunc(who.name, true)) : "";
 
   // Line 2: context left, token count, cost
   // Claude Code gives the token counts of the last response, so their sum is the size of the context now.
@@ -108,7 +115,7 @@ try {
     const pct = Math.round(Math.max(0, Math.min(100, rem)));
     const filled = Math.round((pct / 100) * 8);
     const color = pct <= 20 ? c.red : pct <= 40 ? c.yellow : c.green;
-    const bar = `${"█".repeat(filled)}${c.dim}${"░".repeat(8 - filled)}${c.undim}`;
+    const bar = `${"█".repeat(filled)}${c.gray}${"░".repeat(8 - filled)}${color}`;
     ctxSeg = seg(color, g.context, dot(`${bar} ${pct}% left`, tokStr));
   }
   const cost = data.cost?.total_cost_usd;
