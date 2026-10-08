@@ -68,19 +68,16 @@ const trunc = (s, keepEnd = false) => {
   return keepEnd ? "…" + cut(chars.reverse()).reverse().join("") : cut(chars).join("") + "…";
 };
 
-// Give the visible width. Do not count the ANSI color codes.
-// ponytail: each character is 1 cell, so wide characters (CJK, emoji) make lines wrap late.
-const width = (s) => [...s.replace(/\x1b\[[0-9;]*m/g, "")].length;
-
 // COLUMNS is the terminal width. Claude Code puts 2 cells of padding on each side of the status line, so remove 4.
 // If COLUMNS is empty, assume a wide terminal and do not wrap.
 const cols = (Number(process.env.COLUMNS) || Infinity) - 4;
 
 // Put the segments on lines from left to right. If a segment does not fit on the line, start a new line.
+// Bun.stringWidth skips the ANSI codes and is the same width count that Claude Code uses for the status line.
 const flow = (segs) =>
   segs.filter(Boolean).reduce((lines, s) => {
     const joined = lines.length ? `${lines.at(-1)}  ${s}` : "";
-    if (joined && width(joined) <= cols) lines[lines.length - 1] = joined;
+    if (joined && Bun.stringWidth(joined) <= cols) lines[lines.length - 1] = joined;
     else lines.push(s);
     return lines;
   }, []);
