@@ -1,6 +1,5 @@
 #!/usr/bin/env bun
 
-
 // ANSI basic-16 foreground colors only. The terminal theme sets the exact color, so these read on dark and light themes.
 // Normal colors (30-37) are the theme's accent colors. Two exceptions:
 // - blue is bright (94): normal blue is a dark navy in macOS Terminal, xterm and Windows, and vanishes on a black background.
