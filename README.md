@@ -10,13 +10,13 @@ The bottom line is what the session has used: how much context is left, how many
 
 You see a cloud profile only on Bedrock (your `AWS_PROFILE`) or Vertex (your project ID).
 
-When the terminal is narrow, the parts that do not fit move down a line. Names longer than 24 characters are cut at a word boundary: the folder and branch keep their start, the cloud profile keeps its end (`…staging:ai-operator`).
+When the terminal is narrow, the parts that do not fit move down a line. Names longer than 24 characters are cut, at a separator such as `-` or `/` when there is one: the folder and branch keep their start, the cloud profile keeps its end (`…staging:ai-operator`).
 
-The colors are the 16 basic ANSI colors, so they follow your terminal theme. The icons come from the Material Design Icons set in any Nerd Font.
+The colors are the 16 basic ANSI colors, so they follow your terminal theme. The icons come from the Material Design Icons set.
 
 ## Install
 
-You need [Bun](https://bun.sh), and a [Nerd Font](https://nerdfonts.com) for the icons.
+You need [Bun](https://bun.sh), and a [Nerd Font](https://nerdfonts.com) v3 or later for the icons.
 
 ```sh
 git clone https://github.com/therealparmesh/claude-statusline

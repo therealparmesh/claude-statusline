@@ -31,5 +31,5 @@ DEST="$DEST" SETTINGS="$DEST_DIR/settings.json" bun -e '
 '
 
 echo "installed → $DEST"
-echo "note: needs a Nerd Font (https://nerdfonts.com) for the glyphs to render."
+echo "note: needs a Nerd Font v3 or later (https://nerdfonts.com) for the icons to render."
 echo "restart Claude Code to see it."
