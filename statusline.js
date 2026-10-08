@@ -1,5 +1,5 @@
 #!/usr/bin/env bun
-import { $ } from "bun";
+
 
 // ANSI basic-16 foreground colors only. The terminal theme sets the exact color, so these read on dark and light themes.
 // Normal colors (30-37) are the theme's accent colors. Two exceptions:
@@ -93,7 +93,7 @@ try {
   // Line 1: folder, git branch, model, effort, cloud profile
   const folder = cwd.split("/").filter(Boolean).pop() || cwd;
   const folderSeg = seg(c.cyan, g.folder, trunc(folder));
-  const branch = (await $`git -C ${cwd} branch --show-current`.quiet().nothrow().text()).trim();
+  const branch = (await Bun.$`git -C ${cwd} branch --show-current`.quiet().nothrow().text()).trim();
   const gitSeg = branch ? seg(c.magenta, g.branch, trunc(branch)) : "";
   const model = data.model?.display_name;
   const modelSeg = model ? seg(c.blue, g.model, dot(model, data.effort?.level)) : "";
